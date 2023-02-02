@@ -63,7 +63,7 @@ static void ParseFile (char *filename)
 		}
 
 		/* FS: Don't export #ifdef GAME_HARD_LINKED stuff.  Mostly for dll_Entry. */
-		strncpy(prevLine, line, sizeof(prevLine) - 1);
+		strcpy(prevLine, line);
 	}
 
 	fclose(f);
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 	snprintf(searchPath, sizeof(searchPath), "%s\\*.cpp", rootPath);
 	SearchPathForExports(searchPath);
 
-	fclose(outFile);
+	fclose(fout);
 
 	return 0;
 }
