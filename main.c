@@ -9,10 +9,14 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <io.h>
-#endif
+#else
+#ifndef _MAX_PATH
+#define _MAX_PATH	PATH_MAX
+#endif // !_MAX_PATH
+#endif // _WIN32
 
-char rootPath[MAX_PATH];
-char outFile[MAX_PATH];
+char rootPath[_MAX_PATH];
+char outFile[_MAX_PATH];
 
 FILE *fout;
 
@@ -103,7 +107,7 @@ static void SearchPathForExports (const char *path)
 
 int main(int argc, char *argv[])
 {
-	char searchPath[MAX_PATH] = { 0 };
+	char searchPath[_MAX_PATH] = { 0 };
 
 	if (argc != 3)
 	{

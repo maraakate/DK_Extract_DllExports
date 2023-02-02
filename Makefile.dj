@@ -1,0 +1,26 @@
+CC = gcc
+ifeq ($(DEBUG),1)
+CFLAGS = -Wall -Werror -g
+CPPFLAGS =
+else
+CFLAGS = -Wall -Werror -O2 -DNDEBUG
+endif
+LDFLAGS =
+LDLIBS = -lc -lgcc
+EXE = dk_extract_dllexports.exe
+
+
+OBJECTS = main.o
+
+.PHONY: clean
+
+all: dk_extract_dllexports
+
+dk_extract_dllexports: $(OBJECTS)
+	$(CC) -o $(EXE) $(LDFLAGS) $(OBJECTS) $(LDLIBS)
+
+clean:
+	rm -f *.o
+
+%.o : %.c
+	$(CC) $(CFLAGS) -c $< -o $@
