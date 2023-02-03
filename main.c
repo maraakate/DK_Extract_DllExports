@@ -31,6 +31,7 @@
 #include <windows.h>
 #include <io.h>
 #else
+#include <dirent.h>
 #ifndef _MAX_PATH
 #define _MAX_PATH	PATH_MAX
 #endif // !_MAX_PATH
@@ -46,10 +47,12 @@ const char HardLinked[] = "#ifdef GAME_HARD_LINKED";
 
 static void ParseFile (char *filename)
 {
-	FILE *f = fopen(filename, "r");
+	FILE *f;
 	char line[2048] = { 0 };
 	char prevLine[2048] = { 0 };
 	char delim[] = " \t(";
+
+	f = fopen(filename, "r");
 	if (!f)
 	{
 		printf("Failed to open file '%s'\n", filename);
@@ -110,7 +113,7 @@ static void SearchPathForExports (const char *path)
 
 	while (found)
 	{
-		char foundFile[MAX_PATH];
+		char foundFile[_MAX_PATH];
 		//printf("Found %s\n", findData.cFileName);
 		snprintf(foundFile, sizeof(foundFile), "%s\\%s", srcPath, findData.cFileName);
 		ParseFile(foundFile);
@@ -120,9 +123,22 @@ static void SearchPathForExports (const char *path)
 	FindClose(dirHandle);
 }
 #else
-static void SearchPathForExports (const char *path)
+static void SearchPathForExports (const char *path, const char *ext)
 {
-	printf("ERROR: Not implemented on this platform!\n");
+	DIR *dirPtr;
+	struct dirent *direntPtr;
+	char foundFile[_MAX_PATH];
+
+	dirPtr = opendir (path);
+	while ((direntPtr = readdir (dirPtr)) != NULL)
+	{
+		if (strstr (direntPtr->d_name, ext) != NULL)
+		{
+			snprintf(foundFile, sizeof(foundFile), "%s/%s", path, direntPtr->d_name);
+			ParseFile(foundFile);
+		}
+	}
+	closedir (dirPtr);
 }
 #endif
 
@@ -147,11 +163,17 @@ int main(int argc, char *argv[])
 		return -2;
 	}
 
+#ifdef _WIN32
 	snprintf(searchPath, sizeof(searchPath), "%s\\*.h", srcPath);
 	SearchPathForExports(searchPath);
 
 	snprintf(searchPath, sizeof(searchPath), "%s\\*.cpp", srcPath);
 	SearchPathForExports(searchPath);
+#else
+	strncpy(searchPath, srcPath, sizeof(searchPath) - 1);
+	SearchPathForExports(searchPath, ".h");
+	SearchPathForExports(searchPath, ".cpp");
+#endif
 
 	fclose(fout);
 
